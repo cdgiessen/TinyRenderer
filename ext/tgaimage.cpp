@@ -1,5 +1,6 @@
 #include <iostream>
 #include "tgaimage.h"
+#include <cstring>
 
 TGAImage::TGAImage() : data(), width(0), height(0), bytespp(0) {}
 TGAImage::TGAImage(const int w, const int h, const int bpp)
@@ -253,7 +254,7 @@ TGAColor TGAImage::get(const int x, const int y) const
 void TGAImage::set(int x, int y, const TGAColor &c)
 {
     if (!data.size() || x < 0 || y < 0 || x >= width || y >= height) return;
-    memcpy(data.data() + (x + y * width) * bytespp, c.bgra, bytespp);
+    std::memcpy(data.data() + (x + y * width) * bytespp, c.bgra, bytespp);
 }
 
 int TGAImage::get_bytespp() { return bytespp; }
@@ -320,7 +321,7 @@ void TGAImage::scale(int w, int h)
             {
                 errx -= width;
                 nx += bytespp;
-                memcpy(tdata.data() + nscanline + nx, data.data() + oscanline + ox, bytespp);
+                std::memcpy(tdata.data() + nscanline + nx, data.data() + oscanline + ox, bytespp);
             }
         }
         erry += h;
@@ -328,7 +329,7 @@ void TGAImage::scale(int w, int h)
         while (erry >= (int)height)
         {
             if (erry >= (int)height << 1)  // it means we jump over a scanline
-                memcpy(tdata.data() + nscanline + nlinebytes, tdata.data() + nscanline, nlinebytes);
+                std::memcpy(tdata.data() + nscanline + nlinebytes, tdata.data() + nscanline, nlinebytes);
             erry -= height;
             nscanline += nlinebytes;
         }

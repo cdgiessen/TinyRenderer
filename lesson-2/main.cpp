@@ -1,57 +1,87 @@
 #include "tgaimage.h"
 #include "model.h"
+#include "geometry.h"
+
+#include <algorithm>
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
-const int width = 800;
-const int height = 800;
+const int width = 1200;
+const int height = 1200;
 
-void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
+vec3 barycentric(vec2 *pts, vec2 P)
 {
-    bool steep = false;
-    if (std::abs(x0 - x1) < std::abs(y0 - y1)) {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-        steep = true;
-    }
-    if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-    int dx = x1 - x0;
-    int dy = y1 - y0;
-    int derror2 = std::abs(dy) * 2;
-    int error2 = 0;
-    int y = y0;
-    for (int x = x0; x <= x1; x++) {
-        if (steep) {
-            image.set(y, x, color);
-        } else {
-            image.set(x, y, color);
+    vec3 u = cross(vec3(pts[2][0] - pts[0][0], pts[1][0] - pts[0][0], pts[0][0] - P[0]),
+                   vec3(pts[2][1] - pts[0][1], pts[1][1] - pts[0][1], pts[0][1] - P[1]));
+    /* `pts` and `P` has integer value as coordinates
+       so `abs(u[2])` < 1 means `u[2]` is 0, that means triangle is degenerate
+       in this case return something with negative coordinates */
+    if (std::abs(u[2]) < 1) return vec3(-1, 1, 1);
+    return vec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+}
+
+void triangle(vec2 *pts, TGAImage &image, TGAColor color)
+{
+    vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
+    vec2 bboxmax(0, 0);
+    vec2 clamp(image.get_width() - 1, image.get_height() - 1);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            bboxmin[j] = std::max(0., std::min(bboxmin[j], double(int(pts[i][j]))));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], double(int(pts[i][j]))));
         }
-        error2 += derror2;
-        if (error2 > dx) {
-            y += (y1 > y0 ? 1 : -1);
-            error2 -= dx * 2;
+    }
+    vec2 P;
+    for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+        for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+            vec3 bc_screen = barycentric(pts, P);
+            if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
+            image.set(P.x, P.y, color);
         }
     }
 }
+
+void random_colors(Model &model, TGAImage &image)
+{
+    for (int i = 0; i < model.nfaces(); i++) {
+        std::vector<int> face = model.face(i);
+        vec2 screen_coords[3];
+        for (int j = 0; j < 3; j++) {
+            vec3 world_coords = model.vert(face[j]);
+            screen_coords[j] =
+                vec2((world_coords.x + 1.) * width / 2., (world_coords.y + 1.) * height / 2.);
+        }
+        triangle(screen_coords, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
+    }
+}
+
+void lambert_lighting(vec3 light_dir, Model &model, TGAImage &image)
+{
+    for (int i = 0; i < model.nfaces(); i++) {
+        std::vector<int> face = model.face(i);
+        vec2 screen_coords[3];
+        vec3 world_coords[3];
+        for (int j = 0; j < 3; j++) {
+            vec3 v = model.vert(face[j]);
+            screen_coords[j] = vec2((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
+            world_coords[j] = v;
+        }
+        vec3 n = cross(world_coords[2] - world_coords[0],world_coords[1] - world_coords[0]);
+        n.normalize();
+        float intensity = n * light_dir;
+        if (intensity > 0) {
+            triangle(screen_coords, image,
+                     TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     Model model{"obj/african_head.obj"};
     TGAImage image(width, height, TGAImage::RGB);
-    for (int i = 0; i < model.nfaces(); i++) {
-        std::vector<int> face = model.face(i);
-        for (int j = 0; j < 3; j++) {
-            Vec3f v0 = model.vert(face[j]);
-            Vec3f v1 = model.vert(face[(j + 1) % 3]);
-            int x0 = (v0.x + 1.) * width / 2.;
-            int y0 = (v0.y + 1.) * height / 2.;
-            int x1 = (v1.x + 1.) * width / 2.;
-            int y1 = (v1.y + 1.) * height / 2.;
-            line(x0, y0, x1, y1, image, white);
-        }
-    }
+    vec3 light_dir {0,0,-1};
+    lambert_lighting(light_dir, model, image);
 
     image.write_tga_file("output.tga");
     return 0;
