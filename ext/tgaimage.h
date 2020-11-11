@@ -31,8 +31,7 @@ struct TGAColor
     TGAColor(const std::uint8_t R, const std::uint8_t G, const std::uint8_t B,
              const std::uint8_t A = 255)
         : bgra{B, G, R, A}, bytespp(4)
-    {
-    }
+    {}
     TGAColor(const std::uint8_t v) : bgra{v, 0, 0, 0}, bytespp(1) {}
 
     TGAColor(const std::uint8_t *p, const std::uint8_t bpp) : bgra{0, 0, 0, 0}, bytespp(bpp)
@@ -46,7 +45,7 @@ struct TGAColor
     {
         TGAColor res = *this;
         double clamped = std::max(0., std::min(intensity, 1.));
-        for (int i = 0; i < 4; i++) res.bgra[i] = bgra[i] * clamped;
+        for (int i = 0; i < 4; i++) res.bgra[i] = static_cast<uint8_t>(bgra[i] * clamped);
         return res;
     }
 };

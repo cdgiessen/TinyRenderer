@@ -66,7 +66,7 @@ void lambert_lighting(vec3 light_dir, Model &model, TGAImage &image)
             screen_coords[j] = vec2((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
             world_coords[j] = v;
         }
-        vec3 n = cross(world_coords[2] - world_coords[0],world_coords[1] - world_coords[0]);
+        vec3 n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
         float intensity = n * light_dir;
         if (intensity > 0) {
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 {
     Model model{"obj/african_head.obj"};
     TGAImage image(width, height, TGAImage::RGB);
-    vec3 light_dir {0,0,-1};
+    vec3 light_dir{0, 0, -1};
     lambert_lighting(light_dir, model, image);
 
     image.write_tga_file("output.tga");
