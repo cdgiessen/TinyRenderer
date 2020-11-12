@@ -59,7 +59,7 @@ vec3 world2screen(vec3 v)
 void random_colors(Model &model, TGAImage &image)
 {
     vec3 light_dir{0, 0, -1};
-    std::vector<float> zbuffer(width * height, std::numeric_limits<float>::max());
+    std::vector<float> zbuffer(width * height, -std::numeric_limits<float>::max());
     for (int i = 0; i < model.nfaces(); i++) {
         std::vector<int> face = model.face(i);
         vec3 pts[3];
@@ -95,6 +95,7 @@ int main(int argc, char **argv)
     TGAImage image(width, height, TGAImage::RGB);
     vec3 light_dir{0, 0, -1};
     lambert_lighting(light_dir, model, image);
+    // random_colors(model, image);
     image.write_tga_file("output.tga");
     return 0;
 }
