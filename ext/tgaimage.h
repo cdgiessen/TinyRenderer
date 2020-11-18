@@ -21,7 +21,6 @@ struct TGA_Header
     std::uint8_t imagedescriptor{};
 };
 #pragma pack(pop)
-
 struct TGAColor
 {
     std::uint8_t bgra[4] = {0, 0, 0, 0};
@@ -54,9 +53,9 @@ class TGAImage
 {
 protected:
     std::vector<std::uint8_t> data;
-    int width;
-    int height;
-    int bytespp;
+    int width{};
+    int height{};
+    int bytespp{};
 
     bool load_rle_data(std::ifstream &in);
     bool unload_rle_data(std::ofstream &out) const;
@@ -72,7 +71,7 @@ public:
     TGAImage();
     TGAImage(const int w, const int h, const int bpp);
     bool read_tga_file(const std::string filename);
-    bool write_tga_file(const std::string filename, const bool vflip = true,
+    bool write_tga_file(const std::string filename, const bool v_flip = true,
                         const bool rle = true) const;
     void flip_horizontally();
     void flip_vertically();

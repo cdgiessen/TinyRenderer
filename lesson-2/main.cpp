@@ -36,7 +36,7 @@ void triangle(vec2 *pts, TGAImage &image, TGAColor color)
         for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
             vec3 bc_screen = barycentric(pts, P);
             if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
-            image.set(P.x, P.y, color);
+            image.set(static_cast<int>(P.x), static_cast<int>(P.y), color);
         }
     }
 }
@@ -44,10 +44,9 @@ void triangle(vec2 *pts, TGAImage &image, TGAColor color)
 void random_colors(Model &model, TGAImage &image)
 {
     for (int i = 0; i < model.nfaces(); i++) {
-        std::vector<int> face = model.face(i);
         vec2 screen_coords[3];
         for (int j = 0; j < 3; j++) {
-            vec3 world_coords = model.vert(face[j]);
+            vec3 world_coords = model.vert(i, j);
             screen_coords[j] =
                 vec2((world_coords.x + 1.) * width / 2., (world_coords.y + 1.) * height / 2.);
         }
@@ -58,20 +57,21 @@ void random_colors(Model &model, TGAImage &image)
 void lambert_lighting(vec3 light_dir, Model &model, TGAImage &image)
 {
     for (int i = 0; i < model.nfaces(); i++) {
-        std::vector<int> face = model.face(i);
         vec2 screen_coords[3];
         vec3 world_coords[3];
         for (int j = 0; j < 3; j++) {
-            vec3 v = model.vert(face[j]);
+            vec3 v = model.vert(i, j);
             screen_coords[j] = vec2((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
             world_coords[j] = v;
         }
         vec3 n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
-        float intensity = n * light_dir;
+        double intensity = n * light_dir;
         if (intensity > 0) {
             triangle(screen_coords, image,
-                     TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+                     TGAColor(static_cast<uint8_t>(intensity * 255),
+                              static_cast<uint8_t>(intensity * 255),
+                              static_cast<uint8_t>(intensity * 255), 255));
         }
     }
 }
