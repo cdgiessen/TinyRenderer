@@ -25,8 +25,8 @@ void triangle(vec2 *pts, TGAImage &image, TGAColor color)
     vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
     vec2 bboxmax(0, 0);
     vec2 clamp(image.get_width() - 1, image.get_height() - 1);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 2; j++) {
+    for (size_t i = 0; i < 3; i++) {
+        for (size_t j = 0; j < 2; j++) {
             bboxmin[j] = std::max(0., std::min(bboxmin[j], double(int(pts[i][j]))));
             bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], double(int(pts[i][j]))));
         }
@@ -43,9 +43,9 @@ void triangle(vec2 *pts, TGAImage &image, TGAColor color)
 
 void random_colors(Model &model, TGAImage &image)
 {
-    for (int i = 0; i < model.nfaces(); i++) {
+    for (size_t i = 0; i < model.nfaces(); i++) {
         vec2 screen_coords[3];
-        for (int j = 0; j < 3; j++) {
+        for (size_t j = 0; j < 3; j++) {
             vec3 world_coords = model.vert(i, j);
             screen_coords[j] =
                 vec2((world_coords.x + 1.) * width / 2., (world_coords.y + 1.) * height / 2.);
@@ -56,10 +56,10 @@ void random_colors(Model &model, TGAImage &image)
 
 void lambert_lighting(vec3 light_dir, Model &model, TGAImage &image)
 {
-    for (int i = 0; i < model.nfaces(); i++) {
+    for (size_t i = 0; i < model.nfaces(); i++) {
         vec2 screen_coords[3];
         vec3 world_coords[3];
-        for (int j = 0; j < 3; j++) {
+        for (size_t j = 0; j < 3; j++) {
             vec3 v = model.vert(i, j);
             screen_coords[j] = vec2((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
             world_coords[j] = v;
@@ -76,7 +76,7 @@ void lambert_lighting(vec3 light_dir, Model &model, TGAImage &image)
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
     Model model{"obj/african_head.obj"};
     TGAImage image(width, height, TGAImage::RGB);

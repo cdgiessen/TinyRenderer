@@ -6,8 +6,8 @@ const TGAColor red = TGAColor(255, 0, 0, 255);
 void line_attempt_1(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {
     for (float t = 0.f; t < 1.f; t += .01f) {
-        int x = static_cast<int>(x0 + (x1 - x0) * t);
-        int y = static_cast<int>(y0 + (y1 - y0) * t);
+        int x = static_cast<int>(static_cast<float>(x0) + static_cast<float>(x1 - x0) * t);
+        int y = static_cast<int>(static_cast<float>(y0) + static_cast<float>(y1 - y0) * t);
         image.set(x, y, color);
     }
 }
@@ -15,8 +15,8 @@ void line_attempt_1(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor co
 void line_attempt_2(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {
     for (int x = x0; x <= x1; x++) {
-        float t = (x - x0) / (float)(x1 - x0);
-        int y = static_cast<int>(y0 * (1. - t) + y1 * t);
+        float t = static_cast<float>(x - x0) / static_cast<float>(x1 - x0);
+        int y = static_cast<int>(y0 * (1. - t) + static_cast<float>(y1) * t);
         image.set(x, y, color);
     }
 }
@@ -34,8 +34,8 @@ void line_attempt_3(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor co
         std::swap(y0, y1);
     }
     for (int x = x0; x <= x1; x++) {
-        float t = (x - x0) / (float)(x1 - x0);
-        int y = static_cast<int>(y0 * (1. - t) + y1 * t);
+        float t = static_cast<float>(x - x0) / static_cast<float>(x1 - x0);
+        int y = static_cast<int>(y0 * (1. - t) + static_cast<float>(y1) * t);
         if (steep) {
             image.set(y, x, color);  // if transposed, de−transpose
         } else {
@@ -57,7 +57,7 @@ void line_attempt_4(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor co
     }
     int dx = x1 - x0;
     int dy = y1 - y0;
-    float derror = std::abs(dy / float(dx));
+    float derror = std::abs(static_cast<float>(dy) / static_cast<float>(dx));
     float error = 0;
     int y = y0;
     for (int x = x0; x <= x1; x++) {
@@ -67,9 +67,9 @@ void line_attempt_4(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor co
             image.set(x, y, color);
         }
         error += derror;
-        if (error > .5) {
+        if (error > .5f) {
             y += (y1 > y0 ? 1 : -1);
-            error -= 1.;
+            error -= 1.f;
         }
     }
 }
@@ -104,7 +104,7 @@ void line_attempt_5(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor co
         }
     }
 }
-int main(int argc, char **argv)
+int main()
 {
     TGAImage image(300, 300, TGAImage::RGB);
 

@@ -35,16 +35,16 @@ struct TGAColor
 
     TGAColor(const std::uint8_t *p, const std::uint8_t bpp) : bgra{0, 0, 0, 0}, bytespp(bpp)
     {
-        for (int i = 0; i < bpp; i++) bgra[i] = p[i];
+        for (size_t i = 0; i < bpp; i++) bgra[i] = p[i];
     }
 
-    std::uint8_t &operator[](const int i) { return bgra[i]; }
+    std::uint8_t &operator[](const size_t i) { return bgra[i]; }
 
     TGAColor operator*(const double intensity) const
     {
         TGAColor res = *this;
         double clamped = std::max(0., std::min(intensity, 1.));
-        for (int i = 0; i < 4; i++) res.bgra[i] = static_cast<uint8_t>(bgra[i] * clamped);
+        for (size_t i = 0; i < 4; i++) res.bgra[i] = static_cast<uint8_t>(bgra[i] * clamped);
         return res;
     }
 };
@@ -53,9 +53,9 @@ class TGAImage
 {
 protected:
     std::vector<std::uint8_t> data;
-    int width{};
-    int height{};
-    int bytespp{};
+    uint32_t width{};
+    uint32_t height{};
+    uint32_t bytespp{};
 
     bool load_rle_data(std::ifstream &in);
     bool unload_rle_data(std::ofstream &out) const;
@@ -69,18 +69,18 @@ public:
     };
 
     TGAImage();
-    TGAImage(const int w, const int h, const int bpp);
+    TGAImage(const size_t w, const size_t h, const size_t bpp);
     bool read_tga_file(const std::string filename);
     bool write_tga_file(const std::string filename, const bool v_flip = true,
                         const bool rle = true) const;
     void flip_horizontally();
     void flip_vertically();
-    void scale(const int w, const int h);
-    TGAColor get(const int x, const int y) const;
-    void set(const int x, const int y, const TGAColor &c);
-    int get_width() const;
-    int get_height() const;
-    int get_bytespp();
+    void scale(const size_t w, const size_t h);
+    TGAColor get(const size_t x, const size_t y) const;
+    void set(const size_t x, const size_t y, const TGAColor &c);
+    size_t get_width() const;
+    size_t get_height() const;
+    size_t get_bytespp();
     std::uint8_t *buffer();
     void clear();
 };

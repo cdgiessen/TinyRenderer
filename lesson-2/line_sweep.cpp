@@ -36,7 +36,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
         }
     }
 }
-int main(int argc, char **argv)
+int main()
 {
     Model model{"obj/african_head.obj"};
     TGAImage image(width, height, TGAImage::RGB);

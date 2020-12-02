@@ -144,6 +144,11 @@ void lambert_textured_lighting(vec3 light_dir, Model &model, TGAImage &image)
             triangle_textured(screen_coords, uv_coords, zbuffer, image, model);
         }
     }
+    TGAImage depth(width, height, TGAImage::GRAYSCALE);
+    for (int h = 0; h < height; h++)
+        for (int w = 0; w < width; w++) depth.set(h, w, (zbuffer[w * height + h] + 1) * 128);
+
+    depth.write_tga_file("depth.tga");
 }
 
 int main(int argc, char **argv)
@@ -151,9 +156,9 @@ int main(int argc, char **argv)
     Model model{"obj/african_head.obj", true, false, false};
     TGAImage image(width, height, TGAImage::RGB);
     vec3 light_dir{0, 0, -1};
-    lambert_lighting(light_dir, model, image);
+    // lambert_lighting(light_dir, model, image);
     // random_colors(model, image);
-    // lambert_textured_lighting(light_dir, model, image);
+    lambert_textured_lighting(light_dir, model, image);
     image.write_tga_file("output.tga");
     return 0;
 }
