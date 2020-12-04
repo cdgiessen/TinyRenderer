@@ -40,10 +40,10 @@ int main()
 {
     Model model{"obj/african_head.obj"};
     TGAImage image(width, height, TGAImage::RGB);
-    for (int i = 0; i < model.nfaces(); i++) {
+    for (size_t i = 0; i < model.nfaces(); i++) {
         for (int j = 0; j < 3; j++) {
-            vec3 v0 = model.vert(i, j);
-            vec3 v1 = model.vert(i, (j + 1) % 3);
+            vec3f v0 = model.vert(i, j);
+            vec3f v1 = model.vert(i, (j + 1) % 3);
             int x0 = static_cast<int>((v0.x + 1.) * width / 2.);
             int y0 = static_cast<int>((v0.y + 1.) * height / 2.);
             int x1 = static_cast<int>((v1.x + 1.) * width / 2.);

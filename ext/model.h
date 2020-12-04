@@ -7,9 +7,9 @@
 class Model
 {
 private:
-    std::vector<vec3> verts_;  // array of vertices
-    std::vector<vec2> uv_;     // array of tex coords
-    std::vector<vec3> norms_;  // array of normal vectors
+    std::vector<vec3f> verts_;  // array of vertices
+    std::vector<vec2f> uv_;     // array of tex coords
+    std::vector<vec3f> norms_;  // array of normal vectors
     std::vector<int> facet_vrt_;
     std::vector<int> facet_tex_;  // indices in the above arrays per triangle
     std::vector<int> facet_nrm_;
@@ -23,12 +23,12 @@ public:
           bool specular_texture = false);
     size_t nverts() const;
     size_t nfaces() const;
-    vec3 normal(const size_t iface,
-                const size_t nthvert) const;  // per triangle corner normal vertex
-    vec3 normal(const vec2 &uv) const;        // fetch the normal vector from the normal map texture
-    vec3 vert(const size_t i) const;
-    vec3 vert(const size_t iface, const size_t nthvert) const;
-    vec2 uv(const size_t iface, const size_t nthvert) const;
-    TGAColor diffuse(const vec2 &uv) const;
-    double specular(const vec2 &uv) const;
+    vec3f normal(const size_t iface,
+                 const size_t nthvert) const;  // per triangle corner normal vertex
+    vec3f normal(const vec2f &uv) const;  // fetch the normal vector from the normal map texture
+    vec3f vert(const size_t i) const;
+    vec3f vert(const size_t iface, const size_t nthvert) const;
+    vec2f uv(const size_t iface, const size_t nthvert) const;
+    TGAColor diffuse(const vec2f &uv) const;
+    double specular(const vec2f &uv) const;
 };

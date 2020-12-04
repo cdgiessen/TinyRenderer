@@ -22,7 +22,6 @@ target_compile_options(compiler-warnings
         -Wconversion
         -Wsign-conversion>
         $<$<CXX_COMPILER_ID:MSVC>:
-        /WX
         /W4>
         )
 
@@ -39,5 +38,6 @@ add_subdirectory(lesson-1)
 add_subdirectory(lesson-2)
 add_subdirectory(lesson-3)
 add_subdirectory(lesson-4-5)
+add_subdirectory(lesson-6)
 
 
