@@ -3,6 +3,7 @@
 #include <array>
 #include <algorithm>
 
+#include "tgaimage.h"
 #include "geometry.h"
 #include "model.h"
 

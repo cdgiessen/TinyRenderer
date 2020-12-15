@@ -65,19 +65,16 @@ vec3f barycentric(vec2f A, vec2f B, vec2f C, vec2f P)
         s[i][2] = A[i] - P[i];
     }
     vec3f u = cross(s[0], s[1]);
-    if (std::abs(u[2]) >
-        1e-2)  // dont forget that u[2] is integer. If it is zero then triangle ABC is degenerate
+    if (std::abs(u[2]) > 1e-2)  // dont forget that u[2] is integer. If it is zero then triangle
+                                // ABC is degenerate
         return vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-    return vec3f(-1, 1, 1);  // in this case generate negative coordinates, it will be thrown away
-                             // by the rasterizer
+    return vec3f(-1, 1, 1);  // in this case generate negative coordinates, it will be thrown
+                             // away by the rasterizer
 }
 
 void triangle(Model &model, std::array<vec4f, 3> pts, IShader &shader, TGAImage &image,
               DepthBuffer &zbuffer)
 {
-    std::array<vec2f, 3> pts2;
-    for (int i = 0; i < 3; i++) pts2[i] = proj<2>(pts[i]);
-
     vec2f bboxmin(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
     vec2f bboxmax(-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max());
     for (int i = 0; i < 3; i++) {
@@ -90,17 +87,13 @@ void triangle(Model &model, std::array<vec4f, 3> pts, IShader &shader, TGAImage 
     TGAColor color;
     for (P.x = static_cast<int>(bboxmin.x); P.x <= static_cast<int>(bboxmax.x); P.x++) {
         for (P.y = static_cast<int>(bboxmin.y); P.y <= static_cast<int>(bboxmax.y); P.y++) {
-            vec3f bc_screen = barycentric(pts2[0], pts2[1], pts2[2], to_f(P));
-            vec3f bc_clip =
-                vec3f(bc_screen.x / pts[0][3], bc_screen.y / pts[1][3], bc_screen.z / pts[2][3]);
-            bc_clip = bc_clip / (bc_clip.x + bc_clip.y + bc_clip.z);
-            double z = pts[0][2] * bc_screen.x + pts[1][2] * bc_screen.y + pts[2][2] * bc_screen.z;
-            double w = pts[0][3] * bc_screen.x + pts[1][3] * bc_screen.y + pts[2][3] * bc_screen.z;
+            vec3f c = barycentric(proj<2, 4>(pts[0] / pts[0][3]), proj<2, 4>(pts[1] / pts[1][3]),
+                                  proj<2, 4>(pts[2] / pts[2][3]), to_f(proj<2, 2>(P)));
+            double z = pts[0][2] * c.x + pts[1][2] * c.y + pts[2][2] * c.z;
+            double w = pts[0][3] * c.x + pts[1][3] * c.y + pts[2][3] * c.z;
             double frag_depth = std::max(0., std::min(255., z / w + .5));
-            if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0 ||
-                zbuffer.get(P.x, P.y) > frag_depth)
-                continue;
-            bool discard = shader.fragment(model, bc_clip, color);
+            if (c.x < 0 || c.y < 0 || c.z < 0 || zbuffer.get(P.x, P.y) > frag_depth) continue;
+            bool discard = shader.fragment(model, c, color);
             if (!discard) {
                 zbuffer.set(P.x, P.y, frag_depth);
                 image.set(P.x, P.y, color);

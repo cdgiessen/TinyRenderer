@@ -17,28 +17,28 @@ int main()
 {
     Model model{"obj/african_head.obj", true, false, false};
 
-    lookat(eye, center, up);
-    viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
-    projection(-1. / (eye - center).norm());
     light_dir.normalize();
 
     TGAImage image(width, height, TGAImage::RGB);
-    TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
+    DepthBuffer zbuffer(width, height);
 
     GouraudShader shader;
+    shader.uniform_ModelView = lookat(eye, center, up);
+    shader.uniform_Viewport = viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+    shader.uniform_Projection = projection(-1. / (eye - center).norm());
     shader.uniform_light_dir = light_dir;
     for (size_t i = 0; i < model.nfaces(); i++) {
         std::array<vec4f, 3> screen_coords;
         for (int j = 0; j < 3; j++) {
             screen_coords[j] = shader.vertex(model, i, j);
         }
-        triangle(screen_coords, shader, image, zbuffer);
+        triangle(model, screen_coords, shader, image, zbuffer);
     }
 
     // image.flip_vertically();  // to place the origin in the bottom left corner of the image
     // zbuffer.flip_vertically();
     image.write_tga_file("output.tga");
-    zbuffer.write_tga_file("zbuffer.tga");
+    zbuffer.write("zbuffer.tga");
 
     return 0;
 }

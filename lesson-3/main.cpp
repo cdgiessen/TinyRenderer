@@ -26,11 +26,11 @@ vec3f barycentric(vec3i A, vec3i B, vec3i C, vec3i P)
                              // by the rasterizer
 }
 
-void triangle(std::array<vec3i, 3> pts, std::vector<float> &zbuffer, TGAImage &image,
+void triangle(std::array<vec3i, 3> pts, std::vector<double> &zbuffer, TGAImage &image,
               TGAColor color)
 {
-    vec2i bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-    vec2i bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+    vec2i bboxmin(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
+    vec2i bboxmax(std::numeric_limits<int>::min(), std::numeric_limits<int>::min());
     vec2i clamp(image.get_width() - 1, image.get_height() - 1);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
@@ -44,9 +44,9 @@ void triangle(std::array<vec3i, 3> pts, std::vector<float> &zbuffer, TGAImage &i
             vec3f bc_screen = barycentric(pts[0], pts[1], pts[2], P);
             if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
             P.z = 0;
-            for (int i = 0; i < 3; i++) P.z += pts[i][2] * bc_screen[i];
+            for (int i = 0; i < 3; i++) P.z += pts[i][2] * static_cast<int>(bc_screen[i]);
             if (zbuffer[int(P.x + P.y * width)] < P.z) {
-                zbuffer[int(P.x + P.y * width)] = static_cast<float>(P.z);
+                zbuffer[int(P.x + P.y * width)] = P.z;
                 image.set(static_cast<int>(P.x), static_cast<int>(P.y), color);
             }
         }
@@ -54,10 +54,10 @@ void triangle(std::array<vec3i, 3> pts, std::vector<float> &zbuffer, TGAImage &i
 }
 
 void triangle_textured(std::array<vec3i, 3> pts, std::array<vec2f, 3> uvs,
-                       std::vector<float> &zbuffer, TGAImage &image, Model &model)
+                       std::vector<double> &zbuffer, TGAImage &image, Model &model)
 {
-    vec2i bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-    vec2i bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+    vec2i bboxmin(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
+    vec2i bboxmax(std::numeric_limits<int>::min(), std::numeric_limits<int>::min());
     vec2i clamp(image.get_width() - 1, image.get_height() - 1);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
@@ -89,13 +89,13 @@ void triangle_textured(std::array<vec3i, 3> pts, std::array<vec2f, 3> uvs,
 
 vec3i world2screen(vec3f v)
 {
-    return vec3i(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
+    return vec3i(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), int(v.z));
 }
 
 void random_colors(Model &model, TGAImage &image)
 {
     vec3f light_dir{0, 0, -1};
-    std::vector<float> zbuffer(width * height, -std::numeric_limits<float>::max());
+    std::vector<double> zbuffer(width * height, -std::numeric_limits<double>::max());
     for (size_t i = 0; i < model.nfaces(); i++) {
         std::array<vec3i, 3> pts;
         for (int j = 0; j < 3; j++) pts[j] = world2screen(model.vert(i, j));
@@ -105,7 +105,7 @@ void random_colors(Model &model, TGAImage &image)
 
 void lambert_lighting(vec3f light_dir, Model &model, TGAImage &image)
 {
-    std::vector<float> zbuffer(width * height, -std::numeric_limits<float>::max());
+    std::vector<double> zbuffer(width * height, -std::numeric_limits<double>::max());
     for (size_t i = 0; i < model.nfaces(); i++) {
         std::array<vec3i, 3> screen_coords;
         std::array<vec3f, 3> world_coords;
@@ -115,7 +115,7 @@ void lambert_lighting(vec3f light_dir, Model &model, TGAImage &image)
         }
         vec3f n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
-        double intensity = n * light_dir;
+        double intensity = dot(n, light_dir);
         if (intensity > 0) {
             triangle(screen_coords, zbuffer, image,
                      TGAColor(static_cast<uint8_t>(intensity * 255),
@@ -127,7 +127,7 @@ void lambert_lighting(vec3f light_dir, Model &model, TGAImage &image)
 
 void lambert_textured_lighting(vec3f light_dir, Model &model, TGAImage &image)
 {
-    std::vector<float> zbuffer(width * height, -std::numeric_limits<float>::max());
+    std::vector<double> zbuffer(width * height, -std::numeric_limits<double>::max());
     for (size_t i = 0; i < model.nfaces(); i++) {
         std::array<vec3i, 3> screen_coords;
         std::array<vec3f, 3> world_coords;
@@ -139,7 +139,7 @@ void lambert_textured_lighting(vec3f light_dir, Model &model, TGAImage &image)
         }
         vec3f n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
-        float intensity = static_cast<float>(n * light_dir);
+        double intensity = dot(n, light_dir);
 
         if (intensity > 0) {
             triangle_textured(screen_coords, uv_coords, zbuffer, image, model);

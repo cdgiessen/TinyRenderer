@@ -105,8 +105,7 @@ void lambert_textured_lighting(Model &model, TGAImage &image)
         vec3f n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
         for (size_t j = 0; j < 3; j++) {
-            screen_coords[j] = embed<double, 3>(view_port * proj * model_view *
-                                                embed<double, 4>(model.vert(i, j)));
+            screen_coords[j] = embed<3>(view_port * proj * model_view * embed<4>(model.vert(i, j)));
             world_coords[j] = model.vert(i, j);
             uv_coords[j] = model.uv(i, j);
         }

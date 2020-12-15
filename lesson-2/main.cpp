@@ -47,8 +47,8 @@ void random_colors(Model &model, TGAImage &image)
         vec2i screen_coords[3];
         for (size_t j = 0; j < 3; j++) {
             vec3f world_coords = model.vert(i, j);
-            screen_coords[j] =
-                vec2i((world_coords.x + 1.) * width / 2., (world_coords.y + 1.) * height / 2.);
+            screen_coords[j] = vec2i(int((world_coords.x + 1.) * width / 2.),
+                                     int((world_coords.y + 1.) * height / 2.));
         }
         triangle(screen_coords, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
     }
@@ -61,12 +61,12 @@ void lambert_lighting(vec3f light_dir, Model &model, TGAImage &image)
         vec3f world_coords[3];
         for (size_t j = 0; j < 3; j++) {
             vec3f v = model.vert(i, j);
-            screen_coords[j] = vec2i((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
+            screen_coords[j] = vec2i(int((v.x + 1.) * width / 2.), int((v.y + 1.) * height / 2.));
             world_coords[j] = v;
         }
         vec3f n = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
         n.normalize();
-        double intensity = n * light_dir;
+        double intensity = dot(n, light_dir);
         if (intensity > 0) {
             triangle(screen_coords, image,
                      TGAColor(static_cast<uint8_t>(intensity * 255),

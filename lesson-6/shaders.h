@@ -11,19 +11,19 @@ struct FlatShader : public IShader
 
     virtual vec4f vertex(Model& model, int iface, int nthvert)
     {
-        vec4f gl_Vertex = embed<double, 4>(model.vert(iface, nthvert));
-        gl_Vertex = Projection * ModelView * gl_Vertex;
-        varying_tri.set_col(nthvert, proj<double, 3>(gl_Vertex / gl_Vertex[3]));
-        gl_Vertex = Viewport * gl_Vertex;
-        return proj<double, 4>(gl_Vertex / gl_Vertex[3]);
+        vec4f gl_Vertex = embed<4>(model.vert(iface, nthvert));
+        gl_Vertex = uniform_Projection * uniform_ModelView * gl_Vertex;
+        varying_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3]));
+        gl_Vertex = uniform_Viewport * gl_Vertex;
+        return proj<4>(gl_Vertex / gl_Vertex[3]);
     }
 
-    virtual bool fragment(vec3f bar, TGAColor& color)
+    virtual bool fragment(Model& model, vec3f bar, TGAColor& color)
     {
         vec3f n =
             cross(varying_tri.col(1) - varying_tri.col(0), varying_tri.col(2) - varying_tri.col(0))
                 .normalize();
-        double intensity = clamp(n * uniform_light_dir, 0., 1.);
+        double intensity = clamp(dot(n, uniform_light_dir), 0., 1.);
         color = TGAColor(255, 255, 255) * intensity;
         return false;
     }
@@ -40,19 +40,19 @@ struct GouraudShader : public IShader
 
     virtual vec4f vertex(Model& model, int iface, int nthvert)
     {
-        vec4f gl_Vertex = embed<double, 4>(model.vert(iface, nthvert));
-        gl_Vertex = Projection * ModelView * gl_Vertex;
-        varying_tri.set_col(nthvert, proj<double, 3>(gl_Vertex / gl_Vertex[3]));
+        vec4f gl_Vertex = embed<4>(model.vert(iface, nthvert));
+        gl_Vertex = uniform_Projection * uniform_ModelView * gl_Vertex;
+        varying_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3]));
 
-        varying_ity[nthvert] = clamp(model.normal(iface, nthvert) * uniform_light_dir, 0., 1.);
+        varying_ity[nthvert] = clamp(dot(model.normal(iface, nthvert), uniform_light_dir), 0., 1.);
 
-        gl_Vertex = Viewport * gl_Vertex;
-        return proj<double, 4>(gl_Vertex / gl_Vertex[3]);
+        gl_Vertex = uniform_Viewport * gl_Vertex;
+        return proj<4>(gl_Vertex / gl_Vertex[3]);
     }
 
-    virtual bool fragment(vec3f bar, TGAColor& color)
+    virtual bool fragment(Model& model, vec3f bar, TGAColor& color)
     {
-        double intensity = varying_ity * bar;
+        double intensity = dot(varying_ity, bar);
         color = TGAColor(255, 255, 255) * intensity;
         return false;
     }
@@ -69,19 +69,19 @@ struct ToonShader : public IShader
 
     virtual vec4f vertex(Model& model, int iface, int nthvert)
     {
-        vec4f gl_Vertex = embed<double, 4>(model.vert(iface, nthvert));
-        gl_Vertex = Projection * ModelView * gl_Vertex;
-        varying_tri.set_col(nthvert, proj<double, 3>(gl_Vertex / gl_Vertex[3]));
+        vec4f gl_Vertex = embed<4>(model.vert(iface, nthvert));
+        gl_Vertex = uniform_Projection * uniform_ModelView * gl_Vertex;
+        varying_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3]));
 
-        varying_ity[nthvert] = clamp(model.normal(iface, nthvert) * uniform_light_dir, 0., 1.);
+        varying_ity[nthvert] = clamp(dot(model.normal(iface, nthvert), uniform_light_dir), 0., 1.);
 
-        gl_Vertex = Viewport * gl_Vertex;
-        return proj<double, 4>(gl_Vertex / gl_Vertex[3]);
+        gl_Vertex = uniform_Viewport * gl_Vertex;
+        return proj<4>(gl_Vertex / gl_Vertex[3]);
     }
 
-    virtual bool fragment(vec3f bar, TGAColor& color)
+    virtual bool fragment(Model& model, vec3f bar, TGAColor& color)
     {
-        double intensity = varying_ity * bar;
+        double intensity = dot(varying_ity, bar);
         if (intensity > .85)
             intensity = 1;
         else if (intensity > .60)
